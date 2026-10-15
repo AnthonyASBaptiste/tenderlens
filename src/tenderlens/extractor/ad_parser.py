@@ -28,7 +28,7 @@ def parse_notice_text(text: str) -> TenderNoticeData:
     Extracts structured fields from tender notice text using rule-based pattern matching.
     """
     # Ref number
-    ref_match = re.search(r"Ref\.?\s*No\.?\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+?)(?:\n|\r|TENDER|$)", text, re.IGNORECASE)
+    ref_match = re.search(r"(?:Ref(?:erence)?\.?\s*(?:No\.?)?|Tender\s*No\.?)\s*[:\-]?\s*([A-Za-z0-9\.\-\s\/]+?)(?:\n|\r|TENDER|$)", text, re.IGNORECASE)
     ref_no = ref_match.group(1).strip() if ref_match else "UNKNOWN-REF"
     
     # Authority
