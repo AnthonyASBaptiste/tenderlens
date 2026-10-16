@@ -4,7 +4,7 @@ services:
     name: tenderlens-api
     runtime: python
     region: oregon
-    plan: starter
+    plan: free
     buildCommand: pip install --upgrade pip && pip install -e .
     startCommand: uvicorn src.tenderlens.gateway.app:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
@@ -13,14 +13,22 @@ services:
         fromDatabase:
           name: tenderlens-db
           property: connectionString
-      - key: TEMPORAL_HOST
-        value: temporal.internal:7233
-      - key: TEMPORAL_NAMESPACE
-        value: default
-      - key: LLM_MODEL
-        value: gemma2:9b
+      - key: MAGIC_LINK_SECRET
+        generateValue: true
       - key: WHATSAPP_VERIFY_TOKEN
         generateValue: true
+      - key: LLM_API_BASE
+        value: https://api.groq.com/openai/v1
+      - key: LLM_MODEL
+        value: gemma2-9b-it
+      - key: LLM_API_KEY
+        sync: false
+      - key: WHATSAPP_API_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: TEMPORAL_HOST
+        value: localhost:7233
 
   # 2. TenderLens Temporal Background Follow-Through Worker
   - type: worker
@@ -36,7 +44,7 @@ services:
           name: tenderlens-db
           property: connectionString
       - key: TEMPORAL_HOST
-        value: temporal.internal:7233
+        value: localhost:7233
       - key: TEMPORAL_NAMESPACE
         value: default
 
@@ -46,4 +54,4 @@ databases:
     databaseName: tenderlens
     user: tenderlens_admin
     region: oregon
-    plan: starter
+    plan: free
