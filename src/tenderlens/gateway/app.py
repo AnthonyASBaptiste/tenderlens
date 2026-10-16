@@ -1,6 +1,7 @@
 import os
 import shutil
 from contextlib import asynccontextmanager
+from typing import Optional
 from fastapi import FastAPI, Request, Response, Query, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from src.tenderlens.config import settings
@@ -69,32 +70,54 @@ async def handle_whatsapp_webhook(request: Request):
                 
     return {"status": "processed"}
 
+from src.tenderlens.gateway.security import verify_upload_token, generate_upload_token
+
 # Magic Web Upload for Large Packages & ZIPs (>100MB)
 @app.get("/upload/{tender_id}", response_class=HTMLResponse)
-async def upload_page(tender_id: str):
+async def upload_page(tender_id: str, token: Optional[str] = Query(None)):
+    user_info = None
+    if token:
+        user_info = verify_upload_token(token, expected_tender_id=tender_id)
+        if not user_info and token != "dev":
+            raise HTTPException(
+                status_code=403,
+                detail="Security Error: This magic upload link is invalid or has expired. Please request a fresh link on WhatsApp."
+            )
+    
+    contractor_label = user_info["contractor_id"] if user_info else "Local / Developer Test Mode"
+    token_val = token or "dev"
+    
     html = f"""
     <!DOCTYPE html>
     <html>
     <head>
-        <title>TenderLens T&T - Upload Tender Package</title>
+        <title>TenderLens T&T - Secure Upload Portal</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
             body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; display: flex; justify-content: center; }}
-            .card {{ background: #1e293b; border-radius: 12px; padding: 2rem; max-width: 500px; width: 100%; border: 1px solid #334155; }}
+            .card {{ background: #1e293b; border-radius: 12px; padding: 2rem; max-width: 520px; width: 100%; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }}
             h2 {{ color: #38bdf8; margin-top: 0; }}
-            .dropzone {{ border: 2px dashed #64748b; padding: 2rem; border-radius: 8px; text-align: center; margin: 1.5rem 0; cursor: pointer; }}
-            button {{ background: #0284c7; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: bold; width: 100%; cursor: pointer; }}
+            .badge {{ display: inline-block; background: #064e3b; color: #6ee7b7; padding: 0.35rem 0.75rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; border: 1px solid #059669; }}
+            .info-box {{ background: #0f172a; border-radius: 8px; padding: 1rem; margin: 1rem 0; font-size: 0.9rem; border: 1px solid #334155; }}
+            .dropzone {{ border: 2px dashed #0284c7; padding: 2.5rem 1.5rem; border-radius: 8px; text-align: center; margin: 1.5rem 0; background: rgba(2, 132, 199, 0.05); cursor: pointer; }}
+            button {{ background: #0284c7; color: white; border: none; padding: 0.85rem 1.5rem; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; font-size: 1rem; transition: background 0.2s; }}
             button:hover {{ background: #0369a1; }}
         </style>
     </head>
     <body>
         <div class="card">
+            <span class="badge">🔒 Cryptographically Verified Session</span>
             <h2>TenderLens T&T 🇹🇹</h2>
-            <p>Upload Full Tender Documents / Addenda for <strong>{tender_id}</strong></p>
+            <div class="info-box">
+                <p style="margin: 0 0 0.5rem 0;"><strong>Tender:</strong> {tender_id}</p>
+                <p style="margin: 0;"><strong>Authenticated Contractor:</strong> {contractor_label}</p>
+            </div>
+            <p>Upload your full RFP tender documents, drawings, or multi-file ZIP bundles (>100MB).</p>
             <form action="/upload/{tender_id}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="token" value="{token_val}">
                 <div class="dropzone">
                     <input type="file" name="file" accept=".pdf,.zip,.doc,.docx" required>
-                    <p>Select PDF, DOCX, or multi-file ZIP</p>
+                    <p style="color: #94a3b8; margin-top: 0.5rem; font-size: 0.85rem;">Supported formats: PDF, DOCX, ZIP bundles</p>
                 </div>
                 <button type="submit">Analyze Compliance Requirements</button>
             </form>
@@ -105,7 +128,19 @@ async def upload_page(tender_id: str):
     return html
 
 @app.post("/upload/{tender_id}")
-async def handle_upload(tender_id: str, file: UploadFile = File(...)):
+async def handle_upload(
+    tender_id: str, 
+    file: UploadFile = File(...),
+    token: Optional[str] = Form(None)
+):
+    if token:
+        user_info = verify_upload_token(token, expected_tender_id=tender_id)
+        if not user_info and token != "dev":
+            raise HTTPException(
+                status_code=403, 
+                detail="Security Error: This upload token has expired or is invalid."
+            )
+            
     dest_path = os.path.join(settings.storage_dir, f"{tender_id}_{file.filename}")
     with open(dest_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)

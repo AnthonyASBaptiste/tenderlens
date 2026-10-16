@@ -26,4 +26,4 @@ async def test_health_and_webhook():
         # Test /upload page
         u_res = await ac.get("/upload/tender_test_123")
         assert u_res.status_code == 200
-        assert "Upload Tender Package" in u_res.text
+        assert "Secure Upload Portal" in u_res.text
