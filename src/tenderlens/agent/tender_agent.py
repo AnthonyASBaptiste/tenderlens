@@ -4,12 +4,12 @@ import re
 from typing import List, Dict, Any, Optional
 from src.tenderlens.config import settings
 from src.tenderlens.agent.prompts import SYSTEM_PROMPT
-from src.tenderlens.agent.tools import HERMES_TOOLS_SCHEMA, execute_tool
+from src.tenderlens.agent.tools import TENDERLENS_TOOLS_SCHEMA, HERMES_TOOLS_SCHEMA, execute_tool
 
-class HermesAgent:
+class TenderAgent:
     """
-    Hermes Agent conversational engine powered by Gemma 2 / open-weight models
-    with function calling and procurement-specific tools.
+    TenderLens Conversational Agent powered by Gemma 2 / open-weight models
+    with function calling and Trinidad & Tobago procurement-specific tools.
     """
     def __init__(self, contractor_phone: str = "+18687771234"):
         self.contractor_phone = contractor_phone
@@ -49,7 +49,7 @@ class HermesAgent:
                     json={
                         "model": settings.llm_model,
                         "messages": self.messages,
-                        "tools": HERMES_TOOLS_SCHEMA,
+                        "tools": TENDERLENS_TOOLS_SCHEMA,
                         "tool_choice": "auto",
                         "temperature": 0.2
                     }
@@ -193,7 +193,21 @@ class HermesAgent:
                 f"💡 Pro-Tip: {exp.get('pro_tip')}"
             )
 
+        # 7. Magic Upload Link intent
+        if any(w in low for w in ["upload", "link", "drop", "portal"]):
+            from src.tenderlens.gateway.security import generate_upload_token
+            token = generate_upload_token(self.contractor_phone, self.active_tender_id)
+            return (
+                f"🔗 Here is your secure magic upload link for tender {self.active_tender_id}:\n\n"
+                f"/upload/{self.active_tender_id}?token={token}\n\n"
+                f"Tap the link to drop your multi-page RFP PDF, engineering drawings, or ZIP package (>100MB). "
+                f"This link is cryptographically signed and valid for 1 hour."
+            )
+
         return (
             "I'm TenderLens T&T. You can send me a photo of a newspaper tender notice, forward an RFP PDF, "
             "ask for your bid status, or mark compliance tasks as Done!"
         )
+
+# Backwards compatibility alias
+HermesAgent = TenderAgent

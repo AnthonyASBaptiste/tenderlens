@@ -6,7 +6,7 @@ from fastapi import FastAPI, Request, Response, Query, UploadFile, File, Form, H
 from fastapi.responses import HTMLResponse, JSONResponse
 from src.tenderlens.config import settings
 from src.tenderlens.db.database import init_db
-from src.tenderlens.agent.hermes_runner import HermesAgent
+from src.tenderlens.agent.tender_agent import TenderAgent, HermesAgent
 from src.tenderlens.agent.tools import execute_tool
 
 @asynccontextmanager
@@ -80,7 +80,7 @@ async def handle_whatsapp_webhook(request: Request):
                 from_num = msg.get("from")
                 msg_type = msg.get("type")
                 
-                agent = HermesAgent(contractor_phone=f"+{from_num}")
+                agent = TenderAgent(contractor_phone=f"+{from_num}")
                 
                 reply_text = ""
                 if msg_type == "text":
@@ -89,6 +89,8 @@ async def handle_whatsapp_webhook(request: Request):
                 elif msg_type in ["image", "document"]:
                     # Note: in live Meta webhook, download media using media_id via Graph API
                     reply_text = "I received your document! Analyzing requirements now..."
+                else:
+                    reply_text = "TenderLens can process tender text messages, photos of newspaper notices, and PDF tender documents. Please send a photo or document to analyze."
                     
                 print(f"[WhatsApp] Reply to {from_num}: {reply_text[:100]}...")
                 if reply_text:
@@ -198,7 +200,7 @@ class ChatRequest(BaseModel):
 
 @app.post("/api/chat")
 async def api_chat(req: ChatRequest):
-    agent = HermesAgent(contractor_phone=req.contractor_phone or "+18687771234")
+    agent = TenderAgent(contractor_phone=req.contractor_phone or "+18687771234")
     reply = await agent.chat(req.message, attached_file=req.attachment)
     return {
         "reply": reply,

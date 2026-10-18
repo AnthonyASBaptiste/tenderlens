@@ -44,7 +44,7 @@ In Trinidad & Tobago (and across the Caribbean), public procurement opportunitie
 ```mermaid
 graph TD
     User([Contractor on WhatsApp]) <-->|Newspaper Photos & PDFs| Bridge[WhatsApp Bridge / Meta Cloud Webhook]
-    Bridge <--> Agent[Hermes Agent Harness]
+    Bridge <--> Agent[TenderLens Agent Harness]
     
     subgraph Core Engine [Render Hosted Services]
         Agent <--> Tools[TenderLens Agent Tools]

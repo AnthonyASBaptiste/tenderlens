@@ -10,7 +10,7 @@ from src.tenderlens.extractor.pdf_parser import load_text_or_pdf
 from src.tenderlens.extractor.compliance_analyzer import analyze_compliance_requirements, TenderBidPlan
 from src.tenderlens.config import settings
 
-HERMES_TOOLS_SCHEMA = [
+TENDERLENS_TOOLS_SCHEMA = [
     {
         "type": "function",
         "function": {
@@ -104,6 +104,7 @@ HERMES_TOOLS_SCHEMA = [
         }
     }
 ]
+HERMES_TOOLS_SCHEMA = TENDERLENS_TOOLS_SCHEMA
 
 async def execute_tool(name: str, args: Dict[str, Any]) -> Dict[str, Any]:
     """Dispatches tool execution to the appropriate backend handler."""
@@ -326,6 +327,15 @@ def handle_explain_requirement(req_type: str) -> Dict[str, Any]:
             "why_mandatory": "Required under Section 58 of the Public Procurement and Disposal of Public Property Act. Tenders without valid tax compliance are rejected on administrative grounds.",
             "pro_tip": "If expired, submit your renewal application immediately at the IRD office in Port of Spain or San Fernando."
         }
+    elif "VAT" in req:
+        return {
+            "requirement": "Value Added Tax (VAT) Clearance Certificate",
+            "issuing_agency": "Inland Revenue Division (IRD), Ministry of Finance, Trinidad and Tobago",
+            "typical_turnaround": "5 to 10 business days",
+            "validity": "Usually valid for 6 months",
+            "why_mandatory": "Mandatory under Section 58 of the Public Procurement and Disposal of Public Property Act to verify that VAT returns and payments are in good standing.",
+            "pro_tip": "If you already obtained a VAT clearance for another public tender in the past 6 months, verify if the expiry date extends past this bid's closing deadline."
+        }
     elif "NIS" in req or "NIB" in req:
         return {
             "requirement": "National Insurance Board (NIS) Compliance Certificate",
@@ -340,8 +350,18 @@ def handle_explain_requirement(req_type: str) -> Dict[str, Any]:
             "requirement": "Bid Security / Tender Bond",
             "issuing_agency": "Commercial Banks (Republic, RBC, Scotiabank, First Citizens) or Insurance Companies",
             "typical_turnaround": "3 to 5 business days",
+            "validity": "90 to 120 days (as specified in RFP)",
             "why_mandatory": "Protects the procuring entity if a winning bidder withdraws or refuses to sign the contract.",
             "pro_tip": "Ensure the bond wording exactly matches the specimen in the tender document, including the validity period (often 90 to 120 days)."
+        }
+    elif "INCORPORATION" in req or "DIRECTOR" in req or "FORM 4" in req or "FORM 28" in req or "COMPANY" in req:
+        return {
+            "requirement": "Certificate of Incorporation & Notice of Directors (Form 4 / Form 28)",
+            "issuing_agency": "Registrar General's Department, Ministry of the Attorney General and Legal Affairs (TTBizLink / Companies Registry)",
+            "typical_turnaround": "Immediate (if copies on file) or 1 to 3 business days for certified copies",
+            "validity": "Valid indefinitely unless company directorship or articles change",
+            "why_mandatory": "Verifies legal personality and confirms authorized signatories on tender submissions.",
+            "pro_tip": "Keep certified true copies of your company documents in your compliance folder."
         }
     else:
         return {

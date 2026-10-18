@@ -2,7 +2,7 @@ import asyncio
 import sys
 import os
 from src.tenderlens.db.database import init_db
-from src.tenderlens.agent.hermes_runner import HermesAgent
+from src.tenderlens.agent.tender_agent import TenderAgent
 from src.tenderlens.workflows.activities import evaluate_bid_health_activity
 
 def print_banner():
@@ -22,7 +22,7 @@ def print_banner():
 
 async def run_simulation():
     await init_db()
-    agent = HermesAgent(contractor_phone="+18687771234")
+    agent = TenderAgent(contractor_phone="+18687771234")
     
     print("\n[Step 1] Contractor snaps a photo of the Sunday newspaper WASA tender ad...")
     print("Contractor -> TenderLens: 'Saw this tender ad in the paper. Can you check what I need to do?' [ATTACHMENT: fixtures/sample_real_tender_ad.png]")
@@ -66,7 +66,7 @@ async def run_simulation():
 async def run_interactive():
     await init_db()
     print_banner()
-    agent = HermesAgent(contractor_phone="+18687771234")
+    agent = TenderAgent(contractor_phone="+18687771234")
     
     while True:
         try:

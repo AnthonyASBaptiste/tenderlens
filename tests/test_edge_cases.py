@@ -49,6 +49,10 @@ def test_explain_all_statutory_requirements():
         elif req == "NIS":
             assert "NIBTT" in exp["issuing_agency"]
             assert "3 to 5" in exp["typical_turnaround"]
+        elif req == "VAT":
+            assert "Inland Revenue" in exp["issuing_agency"]
+            assert "5 to 10" in exp["typical_turnaround"]
+            assert "6 months" in exp["validity"]
 
 def test_pdf_missing_file_raises_error():
     with pytest.raises(FileNotFoundError):
@@ -59,3 +63,35 @@ def test_ad_parser_robust_fallback():
     parsed = parse_notice_text(sparse_text)
     assert parsed.ref_no == "WASA-2026-PNT"
     assert "PAINTING" in parsed.title
+
+@pytest.mark.asyncio
+async def test_tender_agent_magic_upload_link_intent():
+    from src.tenderlens.agent.tender_agent import TenderAgent, HermesAgent
+    agent = TenderAgent(contractor_phone="+18687771234")
+    reply = await agent.chat("Send me the upload link to drop my tender package")
+    assert "/upload/" in reply
+    assert "token=" in reply
+    
+    # Verify backwards compatibility alias
+    alias_agent = HermesAgent(contractor_phone="+18687771234")
+    assert isinstance(alias_agent, TenderAgent)
+
+@pytest.mark.asyncio
+async def test_webhook_unsupported_media_type():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        payload = {
+            "entry": [{
+                "changes": [{
+                    "value": {
+                        "messages": [{
+                            "from": "18687771234",
+                            "type": "audio",
+                            "audio": {"id": "audio_123"}
+                        }]
+                    }
+                }]
+            }]
+        }
+        res = await ac.post("/webhook", json=payload)
+        assert res.status_code == 200
+        assert res.json() == {"status": "processed"}
