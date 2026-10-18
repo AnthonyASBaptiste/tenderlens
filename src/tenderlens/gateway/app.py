@@ -117,39 +117,159 @@ async def upload_page(tender_id: str, token: Optional[str] = Query(None)):
     
     html = f"""
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
+        <meta charset="UTF-8">
         <title>TenderLens T&T - Secure Upload Portal</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
-            body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; padding: 2rem; display: flex; justify-content: center; }}
-            .card {{ background: #1e293b; border-radius: 12px; padding: 2rem; max-width: 520px; width: 100%; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }}
-            h2 {{ color: #38bdf8; margin-top: 0; }}
-            .badge {{ display: inline-block; background: #064e3b; color: #6ee7b7; padding: 0.35rem 0.75rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; border: 1px solid #059669; }}
-            .info-box {{ background: #0f172a; border-radius: 8px; padding: 1rem; margin: 1rem 0; font-size: 0.9rem; border: 1px solid #334155; }}
-            .dropzone {{ border: 2px dashed #0284c7; padding: 2.5rem 1.5rem; border-radius: 8px; text-align: center; margin: 1.5rem 0; background: rgba(2, 132, 199, 0.05); cursor: pointer; }}
-            button {{ background: #0284c7; color: white; border: none; padding: 0.85rem 1.5rem; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; font-size: 1rem; transition: background 0.2s; }}
-            button:hover {{ background: #0369a1; }}
+            * {{ box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }}
+            body {{ background: #0f172a; color: #f8fafc; min-height: 100vh; padding: 2rem 1rem; display: flex; justify-content: center; align-items: flex-start; }}
+            .card {{ background: #1e293b; border-radius: 16px; padding: 2.25rem; max-width: 580px; width: 100%; border: 1px solid #334155; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }}
+            .header-row {{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }}
+            h2 {{ color: #38bdf8; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }}
+            .badge {{ display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.12); color: #34d399; padding: 0.4rem 0.85rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3); }}
+            .info-box {{ background: #0b1329; border-radius: 10px; padding: 1rem 1.25rem; margin: 1.25rem 0; font-size: 0.88rem; border: 1px solid #1e293b; line-height: 1.5; }}
+            .info-row {{ display: flex; justify-content: space-between; margin-bottom: 0.35rem; }}
+            .info-label {{ color: #94a3b8; font-weight: 500; }}
+            .info-val {{ color: #e2e8f0; font-weight: 600; word-break: break-all; }}
+            
+            /* Drag and Drop Zone */
+            .dropzone {{ border: 2px dashed #38bdf8; padding: 2.5rem 1.5rem; border-radius: 12px; text-align: center; margin: 1.5rem 0; background: rgba(56, 189, 248, 0.04); cursor: pointer; transition: all 0.25s ease; position: relative; }}
+            .dropzone:hover, .dropzone.dragover {{ background: rgba(56, 189, 248, 0.1); border-color: #0284c7; transform: translateY(-1px); }}
+            .dropzone input[type="file"] {{ position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }}
+            .drop-icon {{ font-size: 2.5rem; margin-bottom: 0.75rem; color: #38bdf8; }}
+            .drop-title {{ font-size: 1.05rem; font-weight: 600; color: #f1f5f9; margin-bottom: 0.35rem; }}
+            .drop-hint {{ color: #94a3b8; font-size: 0.82rem; }}
+            .file-selected {{ margin-top: 0.75rem; color: #34d399; font-weight: 600; font-size: 0.9rem; display: none; }}
+            
+            /* Action Button */
+            button.btn-submit {{ background: linear-gradient(135deg, #0284c7, #2563eb); color: white; border: none; padding: 0.95rem 1.5rem; border-radius: 10px; font-weight: 600; width: 100%; cursor: pointer; font-size: 1rem; transition: all 0.2s; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3); }}
+            button.btn-submit:hover {{ background: linear-gradient(135deg, #0369a1, #1d4ed8); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4); }}
+            button.btn-submit:disabled {{ opacity: 0.6; cursor: not-allowed; }}
+            
+            /* Live Results */
+            .results-card {{ margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #334155; display: none; }}
+            .alert-box {{ background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 0.85rem 1rem; border-radius: 8px; font-size: 0.88rem; margin: 1rem 0; line-height: 1.45; }}
+            .task-item {{ background: #0f172a; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1e293b; font-size: 0.88rem; }}
+            .btn-wa {{ display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #00a884; color: white; text-decoration: none; padding: 0.85rem 1.25rem; border-radius: 10px; font-weight: 600; width: 100%; margin-top: 1rem; transition: 0.2s; }}
+            .btn-wa:hover {{ background: #02906f; }}
         </style>
     </head>
     <body>
         <div class="card">
-            <span class="badge">🔒 Cryptographically Verified Session</span>
-            <h2>TenderLens T&T 🇹🇹</h2>
-            <div class="info-box">
-                <p style="margin: 0 0 0.5rem 0;"><strong>Tender:</strong> {tender_id}</p>
-                <p style="margin: 0;"><strong>Authenticated Contractor:</strong> {contractor_label}</p>
+            <div class="header-row">
+                <h2>TenderLens T&T 🇹🇹</h2>
+                <span class="badge">🔒 Cryptographically Verified Session</span>
             </div>
-            <p>Upload your full RFP tender documents, drawings, or multi-file ZIP bundles (>100MB).</p>
-            <form action="/upload/{tender_id}" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="token" value="{token_val}">
-                <div class="dropzone">
-                    <input type="file" name="file" accept=".pdf,.zip,.doc,.docx" required>
-                    <p style="color: #94a3b8; margin-top: 0.5rem; font-size: 0.85rem;">Supported formats: PDF, DOCX, ZIP bundles</p>
+            
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Active Tender:</span>
+                    <span class="info-val">{tender_id}</span>
                 </div>
-                <button type="submit">Analyze Compliance Requirements</button>
+                <div class="info-row" style="margin-bottom: 0;">
+                    <span class="info-label">Authenticated Contractor:</span>
+                    <span class="info-val">{contractor_label}</span>
+                </div>
+            </div>
+            
+            <p style="color: #cbd5e1; font-size: 0.92rem; line-height: 1.5; margin-bottom: 0.5rem;">
+                Upload your official procurement RFP document, bills of quantities, or multi-file tender package (&gt;100MB).
+            </p>
+            
+            <form id="uploadForm" action="/upload/{tender_id}" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="token" value="{token_val}">
+                <div class="dropzone" id="dropzone">
+                    <input type="file" id="fileInput" name="file" accept=".pdf,.zip,.doc,.docx,.txt" required>
+                    <div class="drop-icon">☁️</div>
+                    <div class="drop-title">Drop your Tender RFP file here</div>
+                    <div class="drop-hint">or click to browse from device (PDF, DOCX, ZIP bundles)</div>
+                    <div class="file-selected" id="fileSelected"></div>
+                </div>
+                <button type="submit" class="btn-submit" id="btnSubmit">Analyze Compliance Requirements</button>
             </form>
+            
+            <div class="results-card" id="resultsCard">
+                <h3 style="color: #38bdf8; font-size: 1.15rem; margin-bottom: 0.75rem;">Analysis Complete 🎉</h3>
+                <div id="statAlert" class="alert-box"></div>
+                <div id="tasksList"></div>
+                <a href="/demo" class="btn-wa">💬 Open WhatsApp Simulator to Track Deadlines</a>
+            </div>
         </div>
+        
+        <script>
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.getElementById('fileInput');
+            const fileSelected = document.getElementById('fileSelected');
+            const uploadForm = document.getElementById('uploadForm');
+            const btnSubmit = document.getElementById('btnSubmit');
+            const resultsCard = document.getElementById('resultsCard');
+            const statAlert = document.getElementById('statAlert');
+            const tasksList = document.getElementById('tasksList');
+            
+            fileInput.addEventListener('change', () => {{
+                if (fileInput.files.length > 0) {{
+                    const file = fileInput.files[0];
+                    const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+                    fileSelected.textContent = `📄 Selected: ${{file.name}} (${{sizeMB}} MB)`;
+                    fileSelected.style.display = 'block';
+                }}
+            }});
+            
+            ['dragenter', 'dragover'].forEach(name => {{
+                dropzone.addEventListener(name, (e) => {{
+                    e.preventDefault();
+                    dropzone.classList.add('dragover');
+                }});
+            }});
+            
+            ['dragleave', 'drop'].forEach(name => {{
+                dropzone.addEventListener(name, (e) => {{
+                    e.preventDefault();
+                    dropzone.classList.remove('dragover');
+                }});
+            }});
+            
+            uploadForm.addEventListener('submit', async (e) => {{
+                e.preventDefault();
+                if (!fileInput.files.length) return;
+                
+                btnSubmit.disabled = true;
+                btnSubmit.textContent = 'Analyzing Compliance Requirements with Gemma 2...';
+                
+                const formData = new FormData(uploadForm);
+                try {{
+                    const res = await fetch(uploadForm.action, {{
+                        method: 'POST',
+                        body: formData
+                    }});
+                    const data = await res.json();
+                    
+                    if (data.status === 'success' && data.compliance_summary) {{
+                        const summary = data.compliance_summary;
+                        statAlert.textContent = '🚨 ' + summary.statutory_warning;
+                        tasksList.innerHTML = '';
+                        (summary.sample_tasks || []).forEach(t => {{
+                            const div = document.createElement('div');
+                            div.className = 'task-item';
+                            div.innerHTML = `<span><strong>${{t.title}}</strong></span><span style="color: #38bdf8; font-size: 0.8rem;">${{t.page || 'Mandatory'}}</span>`;
+                            tasksList.appendChild(div);
+                        }});
+                        resultsCard.style.display = 'block';
+                        btnSubmit.textContent = '✓ Document Ingested Successfully';
+                    }} else {{
+                        alert('Upload failed: ' + (data.detail || 'Unknown error'));
+                        btnSubmit.disabled = false;
+                        btnSubmit.textContent = 'Analyze Compliance Requirements';
+                    }}
+                }} catch (err) {{
+                    alert('Error connecting to TenderLens: ' + err.message);
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = 'Analyze Compliance Requirements';
+                }}
+            }});
+        </script>
     </body>
     </html>
     """
@@ -221,7 +341,7 @@ async def trigger_proactive_checkin(tender_id: str):
 @app.get("/", response_class=HTMLResponse)
 @app.get("/demo", response_class=HTMLResponse)
 async def web_simulator():
-    html = """<!DOCTYPE html>
+    html = r"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -229,41 +349,61 @@ async def web_simulator():
     <title>TenderLens T&T 🇹🇹 - WhatsApp Simulator</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background: #0b141a; height: 100vh; display: flex; justify-content: center; align-items: center; }
-        .phone-container { width: 100%; max-width: 480px; height: 100vh; max-height: 850px; background: #0b141a; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.6); position: relative; border-radius: 16px; overflow: hidden; border: 1px solid #222e35; }
+        body { background: #0b141a; height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; }
+        .phone-container { width: 100%; max-width: 490px; height: 100vh; max-height: 860px; background: #0b141a; display: flex; flex-direction: column; box-shadow: 0 16px 50px rgba(0,0,0,0.7); position: relative; border-radius: 18px; overflow: hidden; border: 1px solid #222e35; }
+        
+        @media (max-width: 520px) {
+            .phone-container { max-height: 100vh; border-radius: 0; border: none; }
+        }
         
         /* WhatsApp Header */
         .chat-header { background: #202c33; color: #e9edef; padding: 10px 16px; display: flex; align-items: center; gap: 12px; z-index: 10; border-bottom: 1px solid #2a3942; }
-        .avatar { width: 42px; height: 42px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: white; flex-shrink: 0; }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: white; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0, 168, 132, 0.4); }
         .header-info { flex: 1; }
         .header-name { font-size: 16px; font-weight: 600; color: #e9edef; display: flex; align-items: center; gap: 6px; }
         .verified-badge { background: #00a884; color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 10px; display: inline-flex; align-items: center; justify-content: center; }
         .header-status { font-size: 12px; color: #8696a0; }
+        .header-link { color: #00a884; font-size: 12px; text-decoration: none; border: 1px solid #00a884; border-radius: 14px; padding: 5px 10px; font-weight: 500; transition: all 0.2s; white-space: nowrap; }
+        .header-link:hover { background: rgba(0, 168, 132, 0.15); color: #25d366; border-color: #25d366; }
         
         /* Quick Action Bar */
-        .quick-actions { background: #111b21; padding: 8px 12px; display: flex; gap: 8px; overflow-x: auto; border-bottom: 1px solid #222e35; scrollbar-width: none; }
+        .quick-actions { background: #111b21; padding: 9px 12px; display: flex; gap: 8px; overflow-x: auto; border-bottom: 1px solid #222e35; scrollbar-width: none; }
         .quick-actions::-webkit-scrollbar { display: none; }
-        .action-chip { background: #202c33; color: #00a884; border: 1px solid #2a3942; border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: 0.2s; display: flex; align-items: center; gap: 4px; }
-        .action-chip:hover { background: #00a884; color: white; border-color: #00a884; }
+        .action-chip { background: #202c33; color: #00a884; border: 1px solid #2a3942; border-radius: 20px; padding: 6px 13px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+        .action-chip:hover { background: #00a884; color: white; border-color: #00a884; transform: translateY(-1px); }
+        .action-chip:active { transform: scale(0.96); }
+        .action-chip.chip-reset { color: #94a3b8; border-color: #334155; }
+        .action-chip.chip-reset:hover { background: #334155; color: #f1f5f9; border-color: #475569; }
         
         /* Message Area */
-        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #0b141a; background-image: radial-gradient(#182229 1px, transparent 1px); background-size: 20px 20px; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #0b141a; background-image: radial-gradient(#182229 1.2px, transparent 1.2px); background-size: 20px 20px; }
         
-        .message { max-width: 82%; padding: 8px 12px 6px; border-radius: 8px; font-size: 14px; line-height: 1.45; word-wrap: break-word; position: relative; }
-        .msg-in { background: #202c33; color: #e9edef; align-self: flex-start; border-top-left-radius: 0; }
-        .msg-out { background: #005c4b; color: #e9edef; align-self: flex-end; border-top-right-radius: 0; }
-        .msg-time { font-size: 10px; color: #8696a0; text-align: right; margin-top: 4px; display: flex; justify-content: flex-end; align-items: center; gap: 3px; }
+        .message { max-width: 84%; padding: 9px 13px 7px; border-radius: 10px; font-size: 14px; line-height: 1.5; word-wrap: break-word; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+        .msg-in { background: #202c33; color: #e9edef; align-self: flex-start; border-top-left-radius: 2px; }
+        .msg-out { background: #005c4b; color: #e9edef; align-self: flex-end; border-top-right-radius: 2px; }
+        .msg-time { font-size: 10px; color: #8696a0; text-align: right; margin-top: 5px; display: flex; justify-content: flex-end; align-items: center; gap: 3px; }
         .msg-time.out { color: #53bdeb; }
         .msg-body { white-space: pre-wrap; }
+        .msg-body a { color: #53bdeb; text-decoration: underline; font-weight: 500; }
+        .msg-body strong { color: #f1f5f9; font-weight: 600; }
+        
+        /* Typing Indicator Bubble */
+        .typing-bubble { display: none; align-self: flex-start; background: #202c33; padding: 12px 16px; border-radius: 12px; border-top-left-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+        .typing-dots { display: flex; gap: 4px; align-items: center; }
+        .dot { width: 7px; height: 7px; background: #8696a0; border-radius: 50%; animation: pulse 1.4s infinite ease-in-out both; }
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes pulse { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
         
         /* Input Area */
-        .chat-input-bar { background: #202c33; padding: 8px 12px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #2a3942; }
-        .input-box { flex: 1; background: #2a3942; border: none; border-radius: 8px; padding: 10px 14px; font-size: 14px; color: #e9edef; outline: none; }
+        .chat-input-bar { background: #202c33; padding: 10px 14px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #2a3942; }
+        .input-box { flex: 1; background: #2a3942; border: 1px solid transparent; border-radius: 10px; padding: 10px 14px; font-size: 14px; color: #e9edef; outline: none; transition: border-color 0.2s; }
+        .input-box:focus { border-color: #00a884; }
         .input-box::placeholder { color: #8696a0; }
-        .btn-send { background: #00a884; border: none; width: 40px; height: 40px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
-        .btn-send:hover { background: #02906f; }
-        .btn-clip { background: transparent; border: none; font-size: 20px; cursor: pointer; color: #8696a0; padding: 4px; }
-        .btn-clip:hover { color: #e9edef; }
+        .btn-send { background: #00a884; border: none; width: 42px; height: 42px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0, 168, 132, 0.4); }
+        .btn-send:hover { background: #02906f; transform: scale(1.04); }
+        .btn-send:active { transform: scale(0.96); }
+        .btn-send svg { width: 18px; height: 18px; fill: currentColor; }
     </style>
 </head>
 <body>
@@ -278,7 +418,7 @@ async def web_simulator():
                 </div>
                 <div class="header-status">Online • Hacktoberfest 2026 AI Assistant</div>
             </div>
-            <a href="/upload/tender_wtc___40_2026?token=dev" target="_blank" style="color: #00a884; font-size: 12px; text-decoration: none; border: 1px solid #00a884; border-radius: 12px; padding: 4px 8px;">Large Upload ↗</a>
+            <a href="/upload/tender_wtc___40_2026?token=dev" target="_blank" class="header-link">Large Upload ↗</a>
         </div>
 
         <!-- Quick Action Chips for Judges -->
@@ -288,6 +428,7 @@ async def web_simulator():
             <button class="action-chip" onclick="sendQuickFullRFP()">📄 3. Send Full RFP</button>
             <button class="action-chip" onclick="simulateTemporalCheckin()">⏰ 4. Trigger Check-in</button>
             <button class="action-chip" onclick="sendQuickStatus()">📊 5. Check Status</button>
+            <button class="action-chip chip-reset" onclick="resetDemo()">↺ Reset</button>
         </div>
 
         <!-- Chat Area -->
@@ -295,43 +436,65 @@ async def web_simulator():
             <div class="message msg-in">
                 <div class="msg-body">👋 Welcome to <strong>TenderLens T&T</strong>!
 
-I help Trinidad & Tobago contractors win public tenders by ensuring you never miss a deadline or get disqualified on missing statutory documents (BIR, NIS, VAT, Bid Bonds).
+I help Trinidad &amp; Tobago contractors win public tenders by ensuring you never miss a deadline or get disqualified on missing statutory documents (BIR, NIS, VAT, Bid Bonds).
 
 👉 Click the quick-test buttons above or text me anything!</div>
                 <div class="msg-time">Just now</div>
+            </div>
+            
+            <div class="typing-bubble" id="typingBubble">
+                <div class="typing-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
             </div>
         </div>
 
         <!-- Input Bar -->
         <div class="chat-input-bar">
             <input type="text" class="input-box" id="msgInput" placeholder="Type a message or question..." onkeydown="if(event.key==='Enter') sendCustomMsg()">
-            <button class="btn-send" onclick="sendCustomMsg()">➤</button>
+            <button class="btn-send" onclick="sendCustomMsg()" title="Send">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
         </div>
     </div>
 
     <script>
         const messagesBox = document.getElementById('messagesBox');
         const msgInput = document.getElementById('msgInput');
+        const typingBubble = document.getElementById('typingBubble');
         let currentTenderId = "tender_wtc___40_2026";
+
+        function formatMsg(text) {
+            let escaped = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            // Bold markdown: **bold** or *bold*
+            escaped = escaped.replace(/(\*\*|\*)(.*?)\1/g, '<strong>$2</strong>');
+            // Links
+            escaped = escaped.replace(/(https?:\/\/[^\s]+|\/upload\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+            return escaped;
+        }
 
         function appendMessage(text, isOut = false) {
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             const msgDiv = document.createElement('div');
             msgDiv.className = `message ${isOut ? 'msg-out' : 'msg-in'}`;
             msgDiv.innerHTML = `
-                <div class="msg-body">${escapeHtml(text)}</div>
+                <div class="msg-body">${formatMsg(text)}</div>
                 <div class="msg-time ${isOut ? 'out' : ''}">${time} ${isOut ? '✓✓' : ''}</div>
             `;
-            messagesBox.appendChild(msgDiv);
+            messagesBox.insertBefore(msgDiv, typingBubble);
             messagesBox.scrollTop = messagesBox.scrollHeight;
         }
 
-        function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        function showTyping(show) {
+            typingBubble.style.display = show ? 'flex' : 'none';
+            if (show) messagesBox.scrollTop = messagesBox.scrollHeight;
         }
 
         async function postChat(msg, attachment = null) {
             appendMessage(msg, true);
+            showTyping(true);
             try {
                 const res = await fetch('/api/chat', {
                     method: 'POST',
@@ -339,9 +502,11 @@ I help Trinidad & Tobago contractors win public tenders by ensuring you never mi
                     body: JSON.stringify({ message: msg, attachment: attachment })
                 });
                 const data = await res.json();
+                showTyping(false);
                 if (data.active_tender_id) currentTenderId = data.active_tender_id;
                 appendMessage(data.reply, false);
             } catch (err) {
+                showTyping(false);
                 appendMessage("❌ Error reaching TenderLens backend.", false);
             }
         }
@@ -360,11 +525,14 @@ I help Trinidad & Tobago contractors win public tenders by ensuring you never mi
 
         async function simulateTemporalCheckin() {
             appendMessage("⚡ [Simulating Temporal Scheduled Check-In Event...]", true);
+            showTyping(true);
             try {
                 const res = await fetch(`/api/proactive-checkin/${currentTenderId}`);
                 const data = await res.json();
+                showTyping(false);
                 appendMessage("⏰ [TEMPORAL WORKFLOW CHECK-IN TRIGGERED]\n\n" + data.proactive_prompt, false);
             } catch(e) {
+                showTyping(false);
                 appendMessage("TenderLens Proactive Check-In: Have you obtained your BIR Tax Clearance Certificate yet? (Reply: Done or In Progress)", false);
             }
         }
@@ -379,8 +547,30 @@ I help Trinidad & Tobago contractors win public tenders by ensuring you never mi
             msgInput.value = '';
             postChat(val);
         }
+
+        function resetDemo() {
+            const initialGreeting = `👋 Welcome to <strong>TenderLens T&T</strong>!
+
+I help Trinidad &amp; Tobago contractors win public tenders by ensuring you never miss a deadline or get disqualified on missing statutory documents (BIR, NIS, VAT, Bid Bonds).
+
+👉 Click the quick-test buttons above or text me anything!`;
+            
+            while (messagesBox.firstChild && messagesBox.firstChild !== typingBubble) {
+                messagesBox.removeChild(messagesBox.firstChild);
+            }
+            
+            const firstMsg = document.createElement('div');
+            firstMsg.className = 'message msg-in';
+            firstMsg.innerHTML = `
+                <div class="msg-body">${initialGreeting}</div>
+                <div class="msg-time">Just now</div>
+            `;
+            messagesBox.insertBefore(firstMsg, typingBubble);
+            currentTenderId = "tender_wtc___40_2026";
+        }
     </script>
 </body>
 </html>"""
+    return html
     return html
 
