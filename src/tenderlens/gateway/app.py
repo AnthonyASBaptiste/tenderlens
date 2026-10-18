@@ -161,3 +161,198 @@ async def handle_upload(
 @app.get("/api/tender/{tender_id}")
 async def get_tender_api(tender_id: str):
     return await execute_tool("get_tender_status", {"tender_id": tender_id})
+
+from pydantic import BaseModel
+from src.tenderlens.workflows.activities import evaluate_bid_health_activity
+
+class ChatRequest(BaseModel):
+    message: str
+    attachment: Optional[str] = None
+    contractor_phone: Optional[str] = "+18687771234"
+
+@app.post("/api/chat")
+async def api_chat(req: ChatRequest):
+    agent = HermesAgent(contractor_phone=req.contractor_phone or "+18687771234")
+    reply = await agent.chat(req.message, attached_file=req.attachment)
+    return {
+        "reply": reply,
+        "contractor_phone": agent.contractor_phone,
+        "active_tender_id": agent.active_tender_id
+    }
+
+@app.get("/api/proactive-checkin/{tender_id}")
+async def trigger_proactive_checkin(tender_id: str):
+    health = await evaluate_bid_health_activity(tender_id)
+    return {
+        "tender_id": tender_id,
+        "proactive_prompt": health.suggested_prompt,
+        "readiness_percentage": health.readiness_percentage,
+        "has_statutory_bottleneck": health.has_statutory_bottleneck
+    }
+
+@app.get("/", response_class=HTMLResponse)
+@app.get("/demo", response_class=HTMLResponse)
+async def web_simulator():
+    html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TenderLens T&T 🇹🇹 - WhatsApp Simulator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background: #0b141a; height: 100vh; display: flex; justify-content: center; align-items: center; }
+        .phone-container { width: 100%; max-width: 480px; height: 100vh; max-height: 850px; background: #0b141a; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,0.6); position: relative; border-radius: 16px; overflow: hidden; border: 1px solid #222e35; }
+        
+        /* WhatsApp Header */
+        .chat-header { background: #202c33; color: #e9edef; padding: 10px 16px; display: flex; align-items: center; gap: 12px; z-index: 10; border-bottom: 1px solid #2a3942; }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; background: #00a884; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: white; flex-shrink: 0; }
+        .header-info { flex: 1; }
+        .header-name { font-size: 16px; font-weight: 600; color: #e9edef; display: flex; align-items: center; gap: 6px; }
+        .verified-badge { background: #00a884; color: white; border-radius: 50%; width: 14px; height: 14px; font-size: 10px; display: inline-flex; align-items: center; justify-content: center; }
+        .header-status { font-size: 12px; color: #8696a0; }
+        
+        /* Quick Action Bar */
+        .quick-actions { background: #111b21; padding: 8px 12px; display: flex; gap: 8px; overflow-x: auto; border-bottom: 1px solid #222e35; scrollbar-width: none; }
+        .quick-actions::-webkit-scrollbar { display: none; }
+        .action-chip { background: #202c33; color: #00a884; border: 1px solid #2a3942; border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: 0.2s; display: flex; align-items: center; gap: 4px; }
+        .action-chip:hover { background: #00a884; color: white; border-color: #00a884; }
+        
+        /* Message Area */
+        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #0b141a; background-image: radial-gradient(#182229 1px, transparent 1px); background-size: 20px 20px; }
+        
+        .message { max-width: 82%; padding: 8px 12px 6px; border-radius: 8px; font-size: 14px; line-height: 1.45; word-wrap: break-word; position: relative; }
+        .msg-in { background: #202c33; color: #e9edef; align-self: flex-start; border-top-left-radius: 0; }
+        .msg-out { background: #005c4b; color: #e9edef; align-self: flex-end; border-top-right-radius: 0; }
+        .msg-time { font-size: 10px; color: #8696a0; text-align: right; margin-top: 4px; display: flex; justify-content: flex-end; align-items: center; gap: 3px; }
+        .msg-time.out { color: #53bdeb; }
+        .msg-body { white-space: pre-wrap; }
+        
+        /* Input Area */
+        .chat-input-bar { background: #202c33; padding: 8px 12px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #2a3942; }
+        .input-box { flex: 1; background: #2a3942; border: none; border-radius: 8px; padding: 10px 14px; font-size: 14px; color: #e9edef; outline: none; }
+        .input-box::placeholder { color: #8696a0; }
+        .btn-send { background: #00a884; border: none; width: 40px; height: 40px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
+        .btn-send:hover { background: #02906f; }
+        .btn-clip { background: transparent; border: none; font-size: 20px; cursor: pointer; color: #8696a0; padding: 4px; }
+        .btn-clip:hover { color: #e9edef; }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="avatar">🇹🇹</div>
+            <div class="header-info">
+                <div class="header-name">
+                    TenderLens T&T
+                    <span class="verified-badge">✓</span>
+                </div>
+                <div class="header-status">Online • Hacktoberfest 2026 AI Assistant</div>
+            </div>
+            <a href="/upload/tender_wtc___40_2026?token=dev" target="_blank" style="color: #00a884; font-size: 12px; text-decoration: none; border: 1px solid #00a884; border-radius: 12px; padding: 4px 8px;">Large Upload ↗</a>
+        </div>
+
+        <!-- Quick Action Chips for Judges -->
+        <div class="quick-actions">
+            <button class="action-chip" onclick="sendQuickAd()">📷 1. Send WASA Ad</button>
+            <button class="action-chip" onclick="sendQuickEmailReq()">✉️ 2. Request ERP Email</button>
+            <button class="action-chip" onclick="sendQuickFullRFP()">📄 3. Send Full RFP</button>
+            <button class="action-chip" onclick="simulateTemporalCheckin()">⏰ 4. Trigger Check-in</button>
+            <button class="action-chip" onclick="sendQuickStatus()">📊 5. Check Status</button>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="chat-messages" id="messagesBox">
+            <div class="message msg-in">
+                <div class="msg-body">👋 Welcome to <strong>TenderLens T&T</strong>!
+
+I help Trinidad & Tobago contractors win public tenders by ensuring you never miss a deadline or get disqualified on missing statutory documents (BIR, NIS, VAT, Bid Bonds).
+
+👉 Click the quick-test buttons above or text me anything!</div>
+                <div class="msg-time">Just now</div>
+            </div>
+        </div>
+
+        <!-- Input Bar -->
+        <div class="chat-input-bar">
+            <input type="text" class="input-box" id="msgInput" placeholder="Type a message or question..." onkeydown="if(event.key==='Enter') sendCustomMsg()">
+            <button class="btn-send" onclick="sendCustomMsg()">➤</button>
+        </div>
+    </div>
+
+    <script>
+        const messagesBox = document.getElementById('messagesBox');
+        const msgInput = document.getElementById('msgInput');
+        let currentTenderId = "tender_wtc___40_2026";
+
+        function appendMessage(text, isOut = false) {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isOut ? 'msg-out' : 'msg-in'}`;
+            msgDiv.innerHTML = `
+                <div class="msg-body">${escapeHtml(text)}</div>
+                <div class="msg-time ${isOut ? 'out' : ''}">${time} ${isOut ? '✓✓' : ''}</div>
+            `;
+            messagesBox.appendChild(msgDiv);
+            messagesBox.scrollTop = messagesBox.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        async function postChat(msg, attachment = null) {
+            appendMessage(msg, true);
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg, attachment: attachment })
+                });
+                const data = await res.json();
+                if (data.active_tender_id) currentTenderId = data.active_tender_id;
+                appendMessage(data.reply, false);
+            } catch (err) {
+                appendMessage("❌ Error reaching TenderLens backend.", false);
+            }
+        }
+
+        function sendQuickAd() {
+            postChat("Saw this tender ad in the Sunday newspaper. Can you check what I need to do?", "fixtures/sample_real_tender_ad.png");
+        }
+
+        function sendQuickEmailReq() {
+            postChat("Yes please, my company is Caribbean Pest Solutions Ltd and my name is Anthony Baptiste");
+        }
+
+        function sendQuickFullRFP() {
+            postChat("Got access and downloaded the full tender document. Here it is.", "fixtures/sample_tt_full_tender.txt");
+        }
+
+        async function simulateTemporalCheckin() {
+            appendMessage("⚡ [Simulating Temporal Scheduled Check-In Event...]", true);
+            try {
+                const res = await fetch(`/api/proactive-checkin/${currentTenderId}`);
+                const data = await res.json();
+                appendMessage("⏰ [TEMPORAL WORKFLOW CHECK-IN TRIGGERED]\n\n" + data.proactive_prompt, false);
+            } catch(e) {
+                appendMessage("TenderLens Proactive Check-In: Have you obtained your BIR Tax Clearance Certificate yet? (Reply: Done or In Progress)", false);
+            }
+        }
+
+        function sendQuickStatus() {
+            postChat("Where am I with this tender?");
+        }
+
+        function sendCustomMsg() {
+            const val = msgInput.value.trim();
+            if (!val) return;
+            msgInput.value = '';
+            postChat(val);
+        }
+    </script>
+</body>
+</html>"""
+    return html
+

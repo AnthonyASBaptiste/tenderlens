@@ -27,3 +27,19 @@ async def test_health_and_webhook():
         u_res = await ac.get("/upload/tender_test_123")
         assert u_res.status_code == 200
         assert "Secure Upload Portal" in u_res.text
+
+        # Test /demo and /
+        d_res = await ac.get("/demo")
+        assert d_res.status_code == 200
+        assert "WhatsApp Simulator" in d_res.text
+
+        # Test /api/chat
+        c_res = await ac.post("/api/chat", json={
+            "message": "Where am I with this tender?",
+            "contractor_phone": "+18687771234"
+        })
+        assert c_res.status_code == 200
+        c_data = c_res.json()
+        assert "reply" in c_data
+        assert c_data["contractor_phone"] == "+18687771234"
+

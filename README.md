@@ -102,12 +102,13 @@ Experience the complete contractor journey (ad photo -> email draft -> proactive
 python -m src.tenderlens.gateway.interactive_cli
 ```
 
-### 4. Launch the Webhook & Magic Upload Gateway
+### 4. Launch the Web Gateway & Web WhatsApp Simulator
 ```bash
 uvicorn src.tenderlens.gateway.app:app --reload --port 8000
 ```
-- Visit `http://localhost:8000/health` to verify API health.
-- Visit `http://localhost:8000/upload/tender_wtc_40_2026` to test the large-package web dropzone.
+- **Web WhatsApp Simulator (For Judges & Instant Demos)**: Open `http://localhost:8000/` or `http://localhost:8000/demo` in any browser to experience the mobile WhatsApp UI with 1-click test buttons.
+- **Secure Magic Upload**: Open `http://localhost:8000/upload/tender_wtc___40_2026?token=dev` to test the HMAC-protected drag-and-drop dropzone for bundles >100MB.
+- **Health Endpoint**: `http://localhost:8000/health`.
 
 ---
 
