@@ -3,9 +3,20 @@ from src.tenderlens.config import settings
 from src.tenderlens.db.models import Base
 import os
 
-os.makedirs(os.path.dirname(settings.database_url.replace("sqlite+aiosqlite:///", "")), exist_ok=True)
+# Format database URL for SQLAlchemy async if using PostgreSQL
+db_url = settings.database_url
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+asyncpg://", 1)
+elif db_url.startswith("postgresql://") and "+asyncpg" not in db_url:
+    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-engine = create_async_engine(settings.database_url, echo=False)
+if "sqlite" in db_url:
+    db_path = db_url.replace("sqlite+aiosqlite:///", "")
+    dir_name = os.path.dirname(db_path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
+
+engine = create_async_engine(db_url, echo=False)
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 async def init_db():
