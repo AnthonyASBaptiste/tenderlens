@@ -320,13 +320,23 @@ class ChatRequest(BaseModel):
 
 @app.post("/api/chat")
 async def api_chat(req: ChatRequest):
-    agent = TenderAgent(contractor_phone=req.contractor_phone or "+18687771234")
-    reply = await agent.chat(req.message, attached_file=req.attachment)
-    return {
-        "reply": reply,
-        "contractor_phone": agent.contractor_phone,
-        "active_tender_id": agent.active_tender_id
-    }
+    try:
+        agent = TenderAgent(contractor_phone=req.contractor_phone or "+18687771234")
+        reply = await agent.chat(req.message, attached_file=req.attachment)
+        return {
+            "reply": reply,
+            "contractor_phone": agent.contractor_phone,
+            "active_tender_id": agent.active_tender_id
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        # Fall back to helpful message instead of crashing with HTTP 500
+        return {
+            "reply": f"⚠️ I encountered an issue processing that request: {str(e)}. Please try typing your question or uploading your tender document.",
+            "contractor_phone": req.contractor_phone or "+18687771234",
+            "active_tender_id": "tender_wtc___40_2026"
+        }
 
 @app.get("/api/proactive-checkin/{tender_id}")
 async def trigger_proactive_checkin(tender_id: str):

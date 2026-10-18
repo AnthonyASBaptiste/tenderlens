@@ -55,6 +55,7 @@ class TenderAgent:
                     }
                 )
                 if res.status_code != 200:
+                    print(f"[LLM API Error] {res.status_code}: {res.text}")
                     return None
                     
                 choice = res.json()["choices"][0]["message"]
@@ -88,7 +89,8 @@ class TenderAgent:
                     msg = choice.get("content", "")
                     self.messages.append({"role": "assistant", "content": msg})
                     return msg
-        except Exception:
+        except Exception as e:
+            print(f"[LLM Client Exception] {e}")
             return None
 
     async def _rule_based_fallback(self, user_input: str, attached_file: Optional[str] = None) -> str:
