@@ -37,6 +37,30 @@ async def verify_webhook(
         return Response(content=hub_challenge, media_type="text/plain")
     return Response(content="Verification failed", status_code=403)
 
+import httpx
+
+async def send_whatsapp_reply(to_num: str, text: str):
+    if not (settings.whatsapp_api_token and settings.whatsapp_phone_number_id):
+        return
+    url = f"https://graph.facebook.com/v20.0/{settings.whatsapp_phone_number_id}/messages"
+    headers = {
+        "Authorization": f"Bearer {settings.whatsapp_api_token}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": to_num.replace("+", ""),
+        "type": "text",
+        "text": {"body": text}
+    }
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.post(url, json=payload, headers=headers)
+            if resp.status_code >= 400:
+                print(f"[WhatsApp API Error] {resp.status_code}: {resp.text}")
+    except Exception as e:
+        print(f"[WhatsApp API Dispatch Failed] {e}")
+
 # WhatsApp Webhook Inbound Message Handler
 @app.post("/webhook")
 async def handle_whatsapp_webhook(request: Request):
@@ -67,6 +91,8 @@ async def handle_whatsapp_webhook(request: Request):
                     reply_text = "I received your document! Analyzing requirements now..."
                     
                 print(f"[WhatsApp] Reply to {from_num}: {reply_text[:100]}...")
+                if reply_text:
+                    await send_whatsapp_reply(from_num, reply_text)
                 
     return {"status": "processed"}
 
