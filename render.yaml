@@ -44,9 +44,11 @@ services:
           name: tenderlens-db
           property: connectionString
       - key: TEMPORAL_HOST
-        value: localhost:7233
+        sync: false
       - key: TEMPORAL_NAMESPACE
-        value: default
+        sync: false
+      - key: TEMPORAL_API_KEY
+        sync: false
 
 databases:
   # 3. Persistent PostgreSQL Database

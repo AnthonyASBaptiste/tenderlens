@@ -14,6 +14,7 @@ class Settings(BaseModel):
     # Temporal Config
     temporal_host: str = os.getenv("TEMPORAL_HOST", "localhost:7233")
     temporal_namespace: str = os.getenv("TEMPORAL_NAMESPACE", "default")
+    temporal_api_key: str = os.getenv("TEMPORAL_API_KEY", "")
     temporal_task_queue: str = "tenderlens-followthrough-queue"
     
     # WhatsApp Webhook Config

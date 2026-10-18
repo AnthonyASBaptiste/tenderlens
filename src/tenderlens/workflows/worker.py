@@ -9,8 +9,18 @@ from src.tenderlens.workflows.activities import (
 )
 
 async def run_worker():
-    print(f"Connecting to Temporal host at {settings.temporal_host}...")
-    client = await Client.connect(settings.temporal_host, namespace=settings.temporal_namespace)
+    print(f"Connecting to Temporal host at {settings.temporal_host} (namespace: {settings.temporal_namespace})...")
+    connect_kwargs = {
+        "target_host": settings.temporal_host,
+        "namespace": settings.temporal_namespace,
+    }
+    if settings.temporal_api_key:
+        connect_kwargs["tls"] = True
+        connect_kwargs["rpc_metadata"] = {
+            "temporal-namespace": settings.temporal_namespace,
+            "authorization": f"Bearer {settings.temporal_api_key}"
+        }
+    client = await Client.connect(**connect_kwargs)
     
     worker = Worker(
         client,
