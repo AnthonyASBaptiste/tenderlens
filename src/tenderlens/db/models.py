@@ -13,7 +13,7 @@ class Contractor(Base):
     company_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     contact_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc))
     
     tenders: Mapped[List["Tender"]] = relationship("Tender", back_populates="contractor")
 
@@ -38,8 +38,8 @@ class Tender(Base):
     procurement_phone: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     source_file_path: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
     
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
-    updated_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc), onupdate=lambda: datetime.datetime.now(datetime.timezone.utc))
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc))
+    updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc), onupdate=lambda: datetime.datetime.now(datetime.timezone.utc))
     
     contractor: Mapped["Contractor"] = relationship("Contractor", back_populates="tenders")
     tasks: Mapped[List["BidTask"]] = relationship("BidTask", back_populates="tender", cascade="all, delete-orphan")
@@ -57,8 +57,8 @@ class BidTask(Base):
     citation_page: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
-    updated_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc), onupdate=lambda: datetime.datetime.now(datetime.timezone.utc))
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc))
+    updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc), onupdate=lambda: datetime.datetime.now(datetime.timezone.utc))
     
     tender: Mapped["Tender"] = relationship("Tender", back_populates="tasks")
 
@@ -70,4 +70,4 @@ class MessageLog(Base):
     tender_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     direction: Mapped[str] = mapped_column(String(20)) # inbound, outbound
     content: Mapped[Text] = mapped_column(Text)
-    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=lambda: datetime.datetime.now(datetime.timezone.utc))
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.datetime.now(datetime.timezone.utc))
