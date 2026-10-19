@@ -33,7 +33,7 @@ async def test_end_to_end_flow():
         "contractor_email": "anthony@apex.tt"
     })
     assert draft_res["status"] == "success"
-    assert "purchasingandstores@wasa.gov.tt" in draft_res["to"]
+    assert "procurement@agency.gov.tt" in draft_res["to"]
     
     # 4. Ingest full tender document
     full_res = await execute_tool("ingest_full_tender_pdf", {

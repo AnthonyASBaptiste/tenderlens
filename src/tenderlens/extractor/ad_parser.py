@@ -51,7 +51,7 @@ def parse_notice_text(text: str) -> TenderNoticeData:
 
     # Email
     email_match = re.search(r"([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)", text)
-    proc_email = email_match.group(1) if email_match else "purchasingandstores@wasa.gov.tt"
+    proc_email = email_match.group(1) if email_match else "procurement@agency.gov.tt"
 
     # Phone
     phone_match = re.search(r"Telephone No\.?\s*([0-9\-]+(?:\s*Exts?\.?\s*[0-9\-, ]+)?)", text, re.IGNORECASE)
@@ -172,8 +172,8 @@ The Water and Sewerage Authority (WASA) invites proposals from eligible responde
 Ref. No. W.T.C. - 40/2026
 TENDER FOR THE PROVISION OF PEST CONTROL SERVICES THROUGHOUT TRINIDAD AND TOBAGO FOR A PERIOD OF TWELVE (12) MONTHS
 ELIGIBILITY: Invitation to Tender is open to firms that can demonstrate their ability to carry out the works according to the required specifications.
-TENDER DOCUMENTS: Interested respondents will have the opportunity to view the tender document at the Procurement Department, Head Office. Documents would be issued via WASA Oracle ERP upon receipt of a request which must be submitted via e-mail to: purchasingandstores@wasa.gov.tt
-A Pre-Bid Meeting and Site Visit will be held at the Authority's North, Central, South and Tobago Regions. The Tender Opening will be held via Microsoft Teams. Bidders are required to notify the Authority of their intention to participate by providing the contact information of their representative/s (Name, Telephone No. and Email Address) two (2) days in advance of the scheduled dates to: purchasingandstores@wasa.gov.tt.
+TENDER DOCUMENTS: Interested respondents will have the opportunity to view the tender document at the Procurement Department, Head Office. Documents would be issued via WASA Oracle ERP upon receipt of a request which must be submitted via e-mail to: procurement@agency.gov.tt
+A Pre-Bid Meeting and Site Visit will be held at the Authority's North, Central, South and Tobago Regions. The Tender Opening will be held via Microsoft Teams. Bidders are required to notify the Authority of their intention to participate by providing the contact information of their representative/s (Name, Telephone No. and Email Address) two (2) days in advance of the scheduled dates to: procurement@agency.gov.tt.
 Late submissions will not be accepted. WASA will not defray any cost incurred by bidders.
 SCHEDULED DATES:
 ITT Publication: July 21, 2026

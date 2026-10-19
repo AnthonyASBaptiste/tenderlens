@@ -12,7 +12,7 @@ async def test_extract_from_real_ad_image():
     assert "Pest Control" in (notice.line_of_business or "") or "PEST" in notice.title
     assert "August 26, 2026" in (notice.closing_deadline or "")
     assert "August 4, 2026" in (notice.site_visit_date or "")
-    assert notice.procurement_email == "purchasingandstores@wasa.gov.tt"
+    assert notice.procurement_email == "procurement@agency.gov.tt"
     assert len(notice.immediate_actions) >= 3
 
 def test_draft_package_request_email():
@@ -20,7 +20,7 @@ def test_draft_package_request_email():
         tender_ref="W.T.C. - 40/2026",
         tender_title="TENDER FOR PEST CONTROL SERVICES",
         procuring_entity="Water and Sewerage Authority (WASA)",
-        procurement_email="purchasingandstores@wasa.gov.tt",
+        procurement_email="procurement@agency.gov.tt",
         contractor_company="Trinidad Clean Pro Ltd",
         contractor_name="Anthony Baptiste",
         contractor_phone="+18687771234",
@@ -29,7 +29,7 @@ def test_draft_package_request_email():
     )
     draft = draft_package_request_email(req)
     
-    assert draft["to"] == "purchasingandstores@wasa.gov.tt"
+    assert draft["to"] == "procurement@agency.gov.tt"
     assert "W.T.C. - 40/2026" in draft["subject"]
     assert "Trinidad Clean Pro Ltd" in draft["body"]
     assert "Kevin Charles" in draft["body"]

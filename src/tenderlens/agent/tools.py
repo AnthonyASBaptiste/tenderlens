@@ -184,7 +184,7 @@ async def handle_draft_email(tender_id: str, company: str, name: str, email: str
             tender_ref=tender.ref_no,
             tender_title=tender.title,
             procuring_entity=tender.authority,
-            procurement_email=tender.procurement_contact_email or "purchasingandstores@wasa.gov.tt",
+            procurement_email=tender.procurement_contact_email or "procurement@agency.gov.tt",
             contractor_company=company,
             contractor_name=name,
             contractor_phone=tender.contractor_id,

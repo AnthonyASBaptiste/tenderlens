@@ -25,7 +25,7 @@ In Trinidad & Tobago (and across the Caribbean), public procurement opportunitie
 - **📸 Stage 1: Newspaper Notice / Ad Ingestion**
   - Contractor snaps a photo of a newspaper tender clipping on WhatsApp.
   - TenderLens extracts the authority (e.g. WASA), tender ref (`W.T.C. - 40/2026`), title, closing date, and mandatory site visit dates.
-  - Automatically drafts the formal procurement package request email addressed to the entity (e.g., `purchasingandstores@wasa.gov.tt` for Oracle ERP access).
+  - Automatically drafts the formal procurement package request email addressed to the entity (e.g., `purchasing@agency.gov.tt` for Oracle ERP access).
 - **📋 Stage 2: Full RFP Compliance Matrix**
   - Ingests full 50–100 page procurement packages (PDF, DOCX, or multi-file ZIP bundles).
   - Automatically isolates mandatory statutory items (BIR, NIS, VAT), corporate records (Form 4/28), Bid Security/Tender Bonds, and technical requirements with **exact page citations**.
